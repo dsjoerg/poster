@@ -7,8 +7,58 @@
 //
 
 #import "PosterAppDelegate.h"
+#import "AnalyticsRequest.h"
+
+#define SEGMENTIO_API_URL [NSURL URLWithString:@"http://hopscotch-analytics.herokuapp.com/api/v1/events/upload"]
+#define API_TOKEN @"142770c83ab725d73d7008c4e37ffbe596541db8cad15a2a036edf85dfa352733a480137d12638ffb1b626bbf2c4d5a2b1a1a10b81100fdf77942d17490ff435"
+
+dispatch_queue_t _serialQueue;
+NSMutableArray *queue;
+NSArray *batch;
+
+static NSString *GenerateUUIDString() {
+    CFUUIDRef theUUID = CFUUIDCreate(NULL);
+    NSString *UUIDString = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, theUUID);
+    CFRelease(theUUID);
+    return UUIDString;
+}
+
+// Async Utils
+dispatch_queue_t dispatch_queue_create_specific(const char *label, dispatch_queue_attr_t attr) {
+    dispatch_queue_t queue = dispatch_queue_create(label, attr);
+    dispatch_queue_set_specific(queue, (__bridge const void *)queue, (__bridge void *)queue, NULL);
+    return queue;
+}
+
+BOOL dispatch_is_on_specific_queue(dispatch_queue_t queue) {
+    return dispatch_get_specific((__bridge const void *)queue) != NULL;
+}
+
+void dispatch_specific(dispatch_queue_t queue, dispatch_block_t block, BOOL waitForCompletion) {
+    if (dispatch_get_specific((__bridge const void *)queue)) {
+        block();
+    } else if (waitForCompletion) {
+        dispatch_sync(queue, block);
+    } else {
+        dispatch_async(queue, block);
+    }
+}
+
+void dispatch_specific_async(dispatch_queue_t queue, dispatch_block_t block) {
+    dispatch_specific(queue, block, NO);
+}
+
+void dispatch_specific_sync(dispatch_queue_t queue, dispatch_block_t block) {
+    dispatch_specific(queue, block, YES);
+}
+
+
 
 @implementation PosterAppDelegate
+
+- (void)dispatchBackground:(void(^)(void))block {
+    dispatch_specific_async(_serialQueue, block);
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -16,6 +66,57 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
+
+    
+    _serialQueue = dispatch_queue_create_specific("io.segment.analytics", DISPATCH_QUEUE_SERIAL);
+
+    queue = [[NSMutableArray alloc] init];
+    NSString *event = @"user_tenure";
+    NSMutableDictionary *properties = [NSMutableDictionary dictionary];
+    [properties setValue:@1 forKey:@"tenure"];
+    
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    [dictionary setValue:event forKey:@"event"];
+    [dictionary setValue:properties forKey:@"properties"];
+    
+    NSMutableDictionary *eventPayload = [NSMutableDictionary dictionaryWithDictionary:dictionary];
+    eventPayload[@"action"] = @"track";
+    eventPayload[@"timestamp"] = [[NSDate date] description];
+    eventPayload[@"requestId"] = GenerateUUIDString();
+    [eventPayload setValue:@"abcde" forKey:@"userId"];
+    [eventPayload setValue:@"12345" forKey:@"sessionId"];
+
+    
+    [queue addObject:eventPayload];
+    
+    batch = [NSArray arrayWithArray:queue];
+
+    NSMutableDictionary *payloadDictionary = [NSMutableDictionary dictionary];
+    [payloadDictionary setObject:[[NSDate date] description] forKey:@"requestTimestamp"];
+    [payloadDictionary setObject:API_TOKEN forKey:@"api_token"];
+    [payloadDictionary setObject:batch forKey:@"batch"];
+
+    
+    NSData *serverPayload = [NSJSONSerialization dataWithJSONObject:payloadDictionary
+                                                      options:0 error:NULL];
+
+
+    NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:SEGMENTIO_API_URL];
+    [urlRequest setValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];
+    [urlRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    [urlRequest setHTTPMethod:@"POST"];
+    [urlRequest setHTTPBody:serverPayload];
+    NSLog(@"%@ Sending batch API request.", self);
+    __block AnalyticsRequest *request = [AnalyticsRequest startWithURLRequest:urlRequest completion:^{
+        [self dispatchBackground:^{
+            if (request.error) {
+                NSLog(@"%@ API request had an error: %@", self, request.error);
+            } else {
+                NSLog(@"%@ API request success 200. request=%@", self, request);
+            }
+        }];
+    }];
+    
     return YES;
 }
 

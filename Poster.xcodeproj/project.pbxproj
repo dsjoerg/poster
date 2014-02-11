@@ -19,6 +19,7 @@
 		63022EDA18AA7564009A9ACF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63022EC218AA7564009A9ACF /* UIKit.framework */; };
 		63022EE218AA7564009A9ACF /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 63022EE018AA7564009A9ACF /* InfoPlist.strings */; };
 		63022EE418AA7564009A9ACF /* PosterTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 63022EE318AA7564009A9ACF /* PosterTests.m */; };
+		63022EEF18AA76CB009A9ACF /* AnalyticsRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 63022EEE18AA76CB009A9ACF /* AnalyticsRequest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,8 @@
 		63022EDF18AA7564009A9ACF /* PosterTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PosterTests-Info.plist"; sourceTree = "<group>"; };
 		63022EE118AA7564009A9ACF /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		63022EE318AA7564009A9ACF /* PosterTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PosterTests.m; sourceTree = "<group>"; };
+		63022EED18AA76CB009A9ACF /* AnalyticsRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnalyticsRequest.h; sourceTree = "<group>"; };
+		63022EEE18AA76CB009A9ACF /* AnalyticsRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AnalyticsRequest.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +112,8 @@
 			children = (
 				63022ECD18AA7564009A9ACF /* PosterAppDelegate.h */,
 				63022ECE18AA7564009A9ACF /* PosterAppDelegate.m */,
+				63022EED18AA76CB009A9ACF /* AnalyticsRequest.h */,
+				63022EEE18AA76CB009A9ACF /* AnalyticsRequest.m */,
 				63022ED018AA7564009A9ACF /* Images.xcassets */,
 				63022EC518AA7564009A9ACF /* Supporting Files */,
 			);
@@ -240,6 +245,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63022EEF18AA76CB009A9ACF /* AnalyticsRequest.m in Sources */,
 				63022ECB18AA7564009A9ACF /* main.m in Sources */,
 				63022ECF18AA7564009A9ACF /* PosterAppDelegate.m in Sources */,
 			);
